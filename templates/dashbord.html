@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>ようこそ、{{ current_user.name }} さん！</h1>
+    <h2>今日の授業一覧</h2>
+    <ul>
+        {% for lesson in lessons %}
+        <li>
+            <a href="{{ url_for('lesson_detail', lesson_id=lesson.id) }}">{{ lesson.subject }} - {{ lesson.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

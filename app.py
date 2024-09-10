@@ -1,5 +1,5 @@
 from flask import Flask, flash, redirect, render_template, request
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import User
   
@@ -62,12 +62,35 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
+# 動画視聴ページ
+@app.route("/videos")
+@login_required
+def videos():
+    return render_template("videos.html")
 
-  
-  
+# バッジを与える基準を定義
+def award_badge(user):
+    # 進捗に基づいてバッジを付与
+    progress = get_student_progress(user.id)  # この関数は進捗を取得する実装が必要
+    if progress > 50:
+        # バッジ付与のロジック
+        pass
+
+# 進捗確認とバッジ付与のルート
+@app.route("/progress")
+@login_required
+def progress():
+    award_badge(current_user)
+    return render_template("progress.html", progress=get_student_progress(current_user.id))
+
+# アプリケーションの起動
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=8000, debug=True)
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8000, debug=True)
