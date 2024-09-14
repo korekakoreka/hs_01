@@ -8,5 +8,7 @@
     <h1>{{ lesson.title }}</h1>
     <p>科目: {{ lesson.subject }}</p>
     <p><a href="{{ lesson.youtube_url }}" target="_blank">授業を視聴する</a></p>
+    <!-- ここにクイズへのリンクを追加 -->
+    <p><a href="{{ url_for('quiz', lesson_id=lesson.id) }}">クイズに挑戦する</a></p>
 </body>
 </html>

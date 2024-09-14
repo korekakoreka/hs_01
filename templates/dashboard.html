@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>ようこそ、{{ current_user.name }} さん！</h1>
-    <h2>今日の授業一覧</h2>
+    <h2>授業一覧</h2>
     <ul>
         {% for lesson in lessons %}
         <li>
@@ -14,5 +14,34 @@
         </li>
         {% endfor %}
     </ul>
+    <h2>クイズ結果</h2>
+    <ul>
+        {% for result in quiz_results %}
+            <li>{{ result.lesson.title }}: {{ result.score }}/{{ result.total }}</li>
+        {% endfor %}
+    </ul>
+
+    <!-- 進捗率の表示 -->
+    <h2>あなたの進捗率</h2>
+    <p>{{ progress_rate }}%</p>
+
+    <!-- 完了した授業一覧 -->
+    <h2>完了した授業一覧</h2>
+    <ul>
+        {% for video_id in completed_videos %}
+        <li>授業 ID: {{ video_id }} - 完了</li>
+        {% endfor %}
+    </ul>
+
+    <!-- バッジの表示 -->
+    <h2>バッジ</h2>
+    <p>あなたのバッジ: {{ badges }}</p>
+    
+    <!-- フィードバックへのリンク -->
+    <h2>フィードバック</h2>
+    <p><a href="{{ url_for('feedback') }}">フィードバックを送信する</a></p>
+
+
 </body>
+
 </html>

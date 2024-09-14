@@ -2,16 +2,29 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morioka Home School</title>
+    <title>Welcome</title>
 </head>
 <body>
-    {% for message in get_flashed_messages() %}
-        <p>{{ message}}</p>
-    {% endfor %}    
+    <h1>Hello Morioka homeschool!</h1>
 
-
-
-    <h1>Hello Morioka home schooling!</h1>
+    <!-- ログイン状態によって表示を切り替える -->
+    {% if current_user.is_authenticated %}
+        <p>ようこそ、{{ current_user.name }} さん！</p>
+        
+        <!-- 授業一覧の表示 -->
+        <h2>授業一覧</h2>
+        <ul>
+            {% for lesson in lessons %}
+            <li>
+                <!-- デバッグ用に授業IDを表示 -->
+                <p>授業 ID: {{ lesson.id }}</p>
+                <a href="{{ url_for('lesson_detail', lesson_id=lesson.id) }}">{{ lesson.subject }} - {{ lesson.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>ログインしてください</p>
+        <a href="{{ url_for('login') }}">ログイン</a>
+    {% endif %}
 </body>
 </html>

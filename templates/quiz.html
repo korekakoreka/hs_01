@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ lesson.title }} のクイズ</title>
+</head>
+<body>
+    <h1>{{ lesson.title }} のクイズ</h1>
+    <form method="POST">
+        {% for question in questions %}
+            <p>{{ question.content }}</p>
+            {% for choice in question.choices %}
+                <input type="radio" name="{{ question.id }}" value="{{ choice.id }}"> {{ choice.content }}<br>
+            {% endfor %}
+        {% endfor %}
+        <button type="submit">解答を送信</button>
+    </form>
+</body>
+</html>

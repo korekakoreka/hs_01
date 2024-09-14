@@ -1,5 +1,5 @@
 from flask_login import UserMixin
-from peewee import ForeignKeyField
+from peewee import ForeignKeyField, AutoField
 from peewee import SqliteDatabase, Model, IntegerField, CharField, TextField, BooleanField, DateTimeField
 from datetime import datetime
 
@@ -20,6 +20,7 @@ class User(UserMixin, Model):
 
 # 授業モデル
 class Lesson(Model):
+    id = AutoField()  # 自動インクリメントされるプライマリキー
     title = CharField()  # 授業のタイトル（数学、国語、英語など）
     subject = CharField()  # 科目名
     youtube_url = CharField()  # YouTubeの限定配信URL
@@ -28,6 +29,25 @@ class Lesson(Model):
     class Meta:
         database = db
         table_name = "lessons"  # 授業テーブルの名前を明示
+
+
+class Question(Model):
+    lesson = ForeignKeyField(Lesson, backref='questions')
+    content = TextField()
+
+    class Meta:
+        database = db
+
+
+class QuizResult(Model):
+    user = ForeignKeyField(User, backref='quiz_results')
+    lesson = ForeignKeyField(Lesson, backref='quiz_results')
+    score = IntegerField()
+    total = IntegerField()
+    timestamp = DateTimeField(default=datetime.now)
+
+    class Meta:
+        database = db
 
 
 class Progress(Model):
@@ -49,14 +69,6 @@ class Feedback(Model):
         database = db
 
 
-class Question(Model):
-    video_id = CharField()
-    content = TextField()
-
-    class Meta:
-        database = db
-
-
 class Choice(Model):
     question = ForeignKeyField(Question, backref='choices')
     content = TextField()
@@ -66,4 +78,6 @@ class Choice(Model):
         database = db
 
 
-db.create_tables([User, Lesson, Progress, Feedback, Question, Choice])
+db.create_tables([User, Lesson, Progress, Feedback, Question, Choice, QuizResult], safe=True)
+
+
