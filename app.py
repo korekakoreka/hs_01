@@ -4,6 +4,29 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import db, User, Progress, Feedback, Lesson, Question, Choice, QuizResult
 from datetime import datetime
 
+
+app = Flask(__name__)
+
+
+@app.route("/some_route")
+def some_function():
+    try:
+        # ユーザーを取得
+        user = User.get(User.id == 3)  # id=3のユーザーを取得しようとする
+    except User.DoesNotExist:  # ユーザーが存在しない場合のエラーハンドリング
+        flash("ユーザーが見つかりませんでした")
+        return redirect(url_for("index"))
+
+
+# # 新しいユーザーを作成
+# new_user = User.create(
+#     name="Bob",
+#     school_year="2024",
+#     class_room="3A",
+#     number="12",
+#     password=generate_password_hash("password123"),
+# )
+
 app = Flask(__name__)
 app.secret_key = "new_secret_key_123456789"  # 新しいシークレットキー
 login_manager = LoginManager()
@@ -32,7 +55,7 @@ def register():
             school_year=request.form["school_year"],
             class_room=request.form["class_room"],
             number=request.form["number"],
-            password=generate_password_hash(request.form["password"])
+            password=generate_password_hash(request.form["password"]),
         )
         flash("ユーザー登録が完了しました！")
         return redirect("/login")
@@ -79,7 +102,7 @@ def reset_session():
 def index():
     print(f"Current User: {current_user}")
     print(f"Is Authenticated: {current_user.is_authenticated}")
-    
+
     if current_user.is_authenticated:
         print(f"Logged in as: {current_user.name}")
         # ログインユーザーに関連付けられた授業を取得
@@ -87,7 +110,6 @@ def index():
         return render_template("index.html", name=current_user.name, lessons=lessons)
     else:
         return render_template("index.html")  # ログインしていない場合の表示
-
 
 
 # ダッシュボード
@@ -108,8 +130,9 @@ def dashboard():
         quiz_results=quiz_results,
         completed_videos=completed_videos,
         badges=badges,
-        progress_rate=progress_rate
+        progress_rate=progress_rate,
     )
+
 
 @app.route("/lesson/<int:lesson_id>")
 @login_required
@@ -124,7 +147,6 @@ def lesson_detail(lesson_id):
         return redirect(url_for("index"))
 
 
-
 # フィードバック送信
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
@@ -134,7 +156,7 @@ def feedback():
         if content:
             Feedback.create(user=current_user.id, content=content)
             flash("フィードバックが送信されました！")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for("dashboard"))
         else:
             flash("フィードバックを入力してください。")
     return render_template("feedback.html")
@@ -152,7 +174,7 @@ def award_badge(user):
 def get_student_progress(user_id):
     total_lessons = Lesson.select().count()
     completed_lessons = Progress.select().where(Progress.user == user_id, Progress.completed == True).count()
-    
+
     if total_lessons > 0:
         return (completed_lessons / total_lessons) * 100  # 進捗率を計算
     return 0
@@ -167,7 +189,7 @@ def create_tables():
 # アプリケーションの起動
 if __name__ == "__main__":
     if db.is_closed():
-        db.connect()
+        db.connect()  # データベースが閉じている場合は接続
 
-    create_tables()  # 必要なテーブルを作成
+    create_tables()  # テーブルが存在しない場合に作成
     app.run(host="127.0.0.1", port=8000, debug=True)

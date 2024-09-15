@@ -11,6 +11,8 @@
         {% for lesson in lessons %}
         <li>
             <a href="{{ url_for('lesson_detail', lesson_id=lesson.id) }}">{{ lesson.subject }} - {{ lesson.title }}</a>
+        
+             <p><a href="{{ lesson.youtube_url }}" target="_blank">授業を視聴する</a></p>
         </li>
         {% endfor %}
     </ul>
