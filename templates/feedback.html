@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>フィードバック</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
 <body>
-    <h1>フィードバックを送信</h1>
-    <form method="POST">
-        <textarea name="content" rows="4" cols="50" placeholder="フィードバック内容を入力してください"></textarea><br><br>
-        <button type="submit">送信</button>
-    </form>
+    <div class="container">
+        <h1>フィードバックを送信</h1>
+        <form method="POST">
+            <textarea name="content" rows="4" cols="50" placeholder="フィードバック内容を入力してください"></textarea><br><br>
+            <button type="submit">送信</button>
+        </form>
+    </div>
 </body>
+</html>
+
 </html>

@@ -2,13 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>{{ lesson.title }}</title>  <!-- ここに授業の名前が入ります -->
+    <title>{{ lesson.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>{{ lesson.title }}</h1>
-    <p>科目: {{ lesson.subject }}</p>
-    <p><a href="{{ lesson.youtube_url }}" target="_blank">授業を視聴する</a></p>
-    <!-- ここにクイズへのリンクを追加 -->
-    <p><a href="{{ url_for('quiz', lesson_id=lesson.id) }}">クイズに挑戦する</a></p>
+    <div class="container">
+        <h1>{{ lesson.title }}</h1>
+        <p>科目: {{ lesson.subject }}</p>
+        <p><a href="{{ lesson.youtube_url }}" target="_blank">授業を視聴する</a></p>
+    </div>
 </body>
 </html>

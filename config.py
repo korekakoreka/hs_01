@@ -6,7 +6,13 @@ from datetime import datetime
 db = SqliteDatabase("db.sqlite")
 
 
-class User(UserMixin, Model):
+# ベースモデル
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+
+class User(UserMixin, BaseModel):
     name = CharField(unique=True)
     school_year = CharField()
     class_room = CharField()
@@ -23,12 +29,16 @@ class Lesson(Model):
     id = AutoField()  # 自動インクリメントされるプライマリキー
     title = CharField()  # 授業のタイトル（数学、国語、英語など）
     subject = CharField()  # 科目名
-    youtube_url = CharField()  # YouTubeの限定配信URL
-    user = ForeignKeyField(User, backref='lessons')  # ユーザー（生徒）と関連付け
+    youtube_url = TextField()  # YouTubeの限定配信URL
+    user_id = IntegerField()
 
     class Meta:
         database = db
         table_name = "lessons"  # 授業テーブルの名前を明示
+
+
+db.connect()
+db.create_tables([Lesson], safe=True)
 
 
 class Question(Model):
@@ -78,6 +88,8 @@ class Choice(Model):
         database = db
 
 
-db.create_tables([User, Lesson, Progress, Feedback, Question, Choice, QuizResult], safe=True)
-
-
+# データベースの初期化
+def init():
+    db.connect()
+    db.create_tables([User, Lesson, Progress, Feedback, Question, Choice, QuizResult], safe=True)
+    db.close()

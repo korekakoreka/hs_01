@@ -3,16 +3,27 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import db, User, Progress, Feedback, Lesson, Question, Choice, QuizResult
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import sqlite3
+import logging
 
 
 app = Flask(__name__)
 
 
+# データベース接続用の関数
+def get_db_connection():
+    conn = sqlite3.connect('db.sqlite')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 @app.route("/some_route")
 def some_function():
     try:
+ 
         # ユーザーを取得
-        user = User.get(User.id == 3)  # id=3のユーザーを取得しようとする
+       user = User.get(User.id == 3)  # id=3のユーザーを取得しようとする
     except User.DoesNotExist:  # ユーザーが存在しない場合のエラーハンドリング
         flash("ユーザーが見つかりませんでした")
         return redirect(url_for("index"))
@@ -28,15 +39,23 @@ def some_function():
 # )
 
 app = Flask(__name__)
-app.secret_key = "new_secret_key_123456789"  # 新しいシークレットキー
+app.config['SECRET_KEY'] = 'your_secret_key'
+
+# LoginManager の設定
+logging.basicConfig(level=logging.INFO)
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'
+
 
 
 # Flask-Loginがユーザー情報を取得するためのメソッド
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get_by_id(user_id)
+    try:
+        return User.get_by_id(user_id)
+    except User.DoesNotExist:
+        return None
 
 
 # ユーザー登録フォームの表示・登録処理
@@ -97,19 +116,29 @@ def reset_session():
     return redirect(url_for("index"))
 
 
+# 仮の授業データ
+lessons = [
+    {"id": 1, "subject": "数学", "title": "数学1", "youtube_url": "https://www.youtube.com/embed/L5qpin1xO_s"},
+    {"id": 2, "subject": "英語", "title": "英語1", "youtube_url": "https://www.youtube.com/embed/WkipCckEMUs"},   
+    {"id": 3, "subject": "国語", "title": "国語1", "youtube_url": "https://www.youtube.com/embed/O-VkiN1dfNs"}
+]
+
+
 # ホームページ
 @app.route("/")
 def index():
-    print(f"Current User: {current_user}")
-    print(f"Is Authenticated: {current_user.is_authenticated}")
+    logging.info("Fetching all lessons")
+    lessons = Lesson.select()
+    logging.info(f"Total lessons fetched: {len(lessons)}")
 
     if current_user.is_authenticated:
-        print(f"Logged in as: {current_user.name}")
-        # ログインユーザーに関連付けられた授業を取得
-        lessons = Lesson.select().where(Lesson.user == current_user.id)
+        logging.info(f"User {current_user.name} is authenticated")
         return render_template("index.html", name=current_user.name, lessons=lessons)
     else:
-        return render_template("index.html")  # ログインしていない場合の表示
+        logging.info("No user is authenticated")
+        return render_template('index.html', lessons=lessons)
+        lessons = Lesson.select()
+        return render_template('index.html', name=current_user.name,  lessons=lessons)
 
 
 # ダッシュボード
@@ -178,6 +207,53 @@ def get_student_progress(user_id):
     if total_lessons > 0:
         return (completed_lessons / total_lessons) * 100  # 進捗率を計算
     return 0
+
+
+# 許可されたファイルの拡張子を確認
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# 動画アップロードのルート
+@app.route("/upload", methods=["GET", "POST"])
+def upload_video():
+    if request.method == "POST":
+        # 動画ファイルと授業タイトルを取得
+        file = request.files["file"]
+        title = request.form["title"]
+        user_id = request.form["user_id"]  # 動画を割り当てる生徒ID
+
+        # ファイルが選択されているか確認
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))  # ファイルを保存
+
+            # データベースに動画情報を保存
+            conn = sqlite3.connect("db.sqlite")
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO videos (title, filename, user_id) VALUES (?, ?, ?)", (title, filename, user_id)
+            )
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for("upload_video"))  # アップロード後にリダイレクト
+
+    # 登録されている生徒リストを取得して表示
+    conn = sqlite3.connect("db.sqlite")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users")
+    users = cursor.fetchall()
+    conn.close()
+
+    return render_template("upload.html", users=users)
+
+
+# 動画視聴ページ
+@app.route("/videos")
+@login_required
+def videos():
+    return render_template("videos.html")
 
 
 # テーブルの作成
